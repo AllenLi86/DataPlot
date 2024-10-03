@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Chart</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Create your chart</h1>
+    <form id="chart-form">
+        <label for="x-column">X-axis:</label>
+        <select id="x-column" required>
+            {% for column in columns %}
+            <option value="{{ column }}">{{ column }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="y-column">Y-axis:</label>
+        <select id="y-column" required>
+            {% for column in columns %}
+            <option value="{{ column }}">{{ column }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="chart-type">Chart type:</label>
+        <select id="chart-type" required>
+            <option value="bar">Bar</option>
+            <option value="line">Line</option>
+            <option value="pie">Pie</option>
+        </select>
+
+        <label for="color">Color:</label>
+        <input type="color" id="color" value="#1f77b4">
+
+        <button type="submit">Generate Chart</button>
+    </form>
+
+    <div id="chart"></div>
+    <div id="error" style="color: red;"></div>
+
+    <script>
+        document.getElementById('chart-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('error').textContent = '';
+            
+            fetch('/plot', {
+                method: 'POST',
+                body: JSON.stringify({
+                    x_column: document.getElementById('x-column').value,
+                    y_column: document.getElementById('y-column').value,
+                    chart_type: document.getElementById('chart-type').value,
+                    color: document.getElementById('color').value
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('error').textContent = 'Error: ' + data.error;
+                } else {
+                    Plotly.newPlot('chart', JSON.parse(data));
+                }
+            })
+            .catch(error => {
+                document.getElementById('error').textContent = 'Error: ' + error;
+            });
+        });
+    </script>
+</body>
+</html>
