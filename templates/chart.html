@@ -5,44 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Chart</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .chart-container {
+            min-height: 500px;
+            margin-top: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
-<body>
-    <h1>Create your chart</h1>
-    <form id="chart-form">
-        <label for="x-column">X-axis:</label>
-        <select id="x-column" required>
-            {% for column in columns %}
-            <option value="{{ column }}">{{ column }}</option>
-            {% endfor %}
-        </select>
+<body class="bg-light">
+    <div class="container py-4">
+        <div class="card shadow-sm p-3">
+            <h1 class="text-center mb-4">Create Your Chart</h1>
+            
+            <form id="chart-form" class="row g-3">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="x-column" class="form-label">X-axis:</label>
+                        <select id="x-column" class="form-select" required>
+                            {% for column in columns %}
+                            <option value="{{ column }}">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
 
-        <label for="y-column">Y-axis:</label>
-        <select id="y-column" required>
-            {% for column in columns %}
-            <option value="{{ column }}">{{ column }}</option>
-            {% endfor %}
-        </select>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="y-column" class="form-label">Y-axis:</label>
+                        <select id="y-column" class="form-select" required>
+                            {% for column in columns %}
+                            <option value="{{ column }}">{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
 
-        <label for="chart-type">Chart type:</label>
-        <select id="chart-type" required>
-            <option value="bar">Bar</option>
-            <option value="line">Line</option>
-            <option value="pie">Pie</option>
-        </select>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="chart-type" class="form-label">Chart type:</label>
+                        <select id="chart-type" class="form-select" required>
+                            <option value="bar">Bar Chart</option>
+                            <option value="line">Line Chart</option>
+                            <option value="pie">Pie Chart</option>
+                        </select>
+                    </div>
+                </div>
 
-        <label for="color">Color:</label>
-        <input type="color" id="color" value="#1f77b4">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="color" class="form-label">Color:</label>
+                        <input type="color" id="color" class="form-control form-control-color w-100" value="#1f77b4">
+                    </div>
+                </div>
 
-        <button type="submit">Generate Chart</button>
-    </form>
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-primary px-4 py-2">Generate Chart</button>
+                </div>
+            </form>
 
-    <div id="chart"></div>
-    <div id="error" style="color: red;"></div>
+            <div id="error" class="alert alert-danger mt-3" style="display: none;"></div>
+            <div id="chart" class="chart-container"></div>
+        </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('chart-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            document.getElementById('error').textContent = '';
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'none';
             
             fetch('/plot', {
                 method: 'POST',
@@ -59,13 +94,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    document.getElementById('error').textContent = 'Error: ' + data.error;
+                    errorDiv.textContent = 'Error: ' + data.error;
+                    errorDiv.style.display = 'block';
                 } else {
                     Plotly.newPlot('chart', JSON.parse(data));
                 }
             })
             .catch(error => {
-                document.getElementById('error').textContent = 'Error: ' + error;
+                errorDiv.textContent = 'Error: ' + error;
+                errorDiv.style.display = 'block';
             });
         });
     </script>
