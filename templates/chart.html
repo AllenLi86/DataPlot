@@ -7,9 +7,14 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        .container {
+            max-width: none !important;
+        }
         .chart-container {
-            min-height: 500px;
+            min-height: 600px;
             margin-top: 2rem;
+            width: 100%;
+            height: 80vh;
         }
         .form-group {
             margin-bottom: 1rem;
@@ -22,48 +27,34 @@
             <h1 class="text-center mb-4">Create Your Chart</h1>
             
             <form id="chart-form" class="row g-3">
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="x-column" class="form-label">X-axis:</label>
-                        <select id="x-column" class="form-select" required>
-                            {% for column in columns %}
-                            <option value="{{ column }}">{{ column }}</option>
-                            {% endfor %}
-                        </select>
+                <div id="lines-container">
+                    <div class="line-inputs row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Line 1 X:</label>
+                            <select class="form-select x-column" required>
+                                {% for column in columns %}
+                                <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Line 1 Y:</label>
+                            <select class="form-select y-column" required>
+                                {% for column in columns %}
+                                <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Color:</label>
+                            <input type="color" class="form-control form-control-color w-100 line-color">
+                        </div>
                     </div>
                 </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="y-column" class="form-label">Y-axis:</label>
-                        <select id="y-column" class="form-select" required>
-                            {% for column in columns %}
-                            <option value="{{ column }}">{{ column }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="chart-type" class="form-label">Chart type:</label>
-                        <select id="chart-type" class="form-select" required>
-                            <option value="bar">Bar Chart</option>
-                            <option value="line">Line Chart</option>
-                            <option value="pie">Pie Chart</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label for="color" class="form-label">Color:</label>
-                        <input type="color" id="color" class="form-control form-control-color w-100" value="#1f77b4">
-                    </div>
-                </div>
-
-                <div class="col-12 text-center">
-                    <button type="submit" class="btn btn-primary px-4 py-2">Generate Chart</button>
+                
+                <div class="col-12">
+                    <button type="button" id="add-line" class="btn btn-secondary">Add Line</button>
+                    <button type="submit" class="btn btn-primary">Generate Chart</button>
                 </div>
             </form>
 
@@ -74,18 +65,56 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let chart;
+        let lineCount = 1;
+        
+        document.getElementById('add-line').addEventListener('click', function() {
+            lineCount++;
+            const newLine = document.createElement('div');
+            newLine.className = 'line-inputs row g-3 mb-3';
+            newLine.innerHTML = `
+                <div class="col-md-3">
+                    <label class="form-label">Line ${lineCount} X:</label>
+                    <select class="form-select x-column" required>
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Line ${lineCount} Y:</label>
+                    <select class="form-select y-column" required>
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Color:</label>
+                    <input type="color" class="form-control form-control-color w-100 line-color">
+                </div>
+            `;
+            document.getElementById('lines-container').appendChild(newLine);
+        });
+    
         document.getElementById('chart-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const errorDiv = document.getElementById('error');
-            errorDiv.style.display = 'none';
+            const lines = [];
+            const lineInputs = document.getElementsByClassName('line-inputs');
             
+            Array.from(lineInputs).forEach(line => {
+                lines.push({
+                    x_column: line.querySelector('.x-column').value,
+                    y_column: line.querySelector('.y-column').value,
+                    color: line.querySelector('.line-color').value
+                });
+            });
+    
             fetch('/plot', {
                 method: 'POST',
                 body: JSON.stringify({
-                    x_column: document.getElementById('x-column').value,
-                    y_column: document.getElementById('y-column').value,
-                    chart_type: document.getElementById('chart-type').value,
-                    color: document.getElementById('color').value
+                    lines: lines,
+                    chart_type: 'line'
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -94,16 +123,21 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    errorDiv.textContent = 'Error: ' + data.error;
-                    errorDiv.style.display = 'block';
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error').style.display = 'block';
                 } else {
-                    Plotly.newPlot('chart', JSON.parse(data));
+                    chart = JSON.parse(data);
+                    Plotly.newPlot('chart', chart.data, chart.layout, {responsive: true});
                 }
-            })
-            .catch(error => {
-                errorDiv.textContent = 'Error: ' + error;
-                errorDiv.style.display = 'block';
             });
+        });
+
+        window.addEventListener('resize', function() {
+            if (chart) {
+                Plotly.relayout('chart', {
+                    width: document.getElementById('chart').offsetWidth
+                });
+            }
         });
     </script>
 </body>

@@ -43,24 +43,25 @@ def index():
 def plot():
     try:
         data = request.json
-        # Convert dict back to DataFrame
         df = pd.DataFrame.from_dict(session['data'])
-
-        x_column = data['x_column']
-        y_column = data['y_column']
-        chart_type = data['chart_type']
-        color = data['color']
-
-        if chart_type == 'bar':
-            fig = go.Figure(data=[go.Bar(x=df[x_column], y=df[y_column], marker_color=color)])
-        elif chart_type == 'line':
-            fig = go.Figure(data=[go.Scatter(x=df[x_column], y=df[y_column], mode='lines+markers', line=dict(color=color))])
-        elif chart_type == 'pie':
-            fig = go.Figure(data=[go.Pie(labels=df[x_column], values=df[y_column], marker=dict(colors=[color]))])
-        else:
-            return jsonify({'error': 'Unsupported chart type'})
-
-        fig.update_layout(title=f'{y_column} vs {x_column}')
+        
+        traces = []
+        for line in data['lines']:
+            trace = go.Scatter(
+                x=df[line['x_column']], 
+                y=df[line['y_column']], 
+                mode='lines+markers',
+                name=f"{line['y_column']} vs {line['x_column']}",
+                line=dict(color=line['color'])
+            )
+            traces.append(trace)
+            
+        fig = go.Figure(data=traces)
+        fig.update_layout(
+            title='Multiple Lines Chart',
+            height=800,
+            autosize=True
+        )
         
         graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return jsonify(graphJSON)
