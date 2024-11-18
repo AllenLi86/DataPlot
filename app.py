@@ -39,31 +39,6 @@ def index():
                 return jsonify({'error': str(e)})
     return render_template('index.html')
 
-@app.route('/0', methods=['GET', 'POST'])
-def index0():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file part'})
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No selected file'})
-        if file and allowed_file(file.filename):
-            try:
-                if file.filename.endswith('.csv'):
-                    df = pd.read_csv(file)
-                elif file.filename.endswith(('.xls', '.xlsx')):
-                    df = pd.read_excel(file)
-                else:
-                    return jsonify({'error': 'Unsupported file format'})
-                
-                # Store DataFrame in server-side session
-                session['data'] = df.to_dict()
-                columns = df.columns.tolist()
-                return render_template('chart.html', columns=columns)
-            except Exception as e:
-                return jsonify({'error': str(e)})
-    return render_template('index0.html')
-
 @app.route('/plot', methods=['POST'])
 def plot():
     try:
@@ -79,7 +54,7 @@ def plot():
         if chart_type == 'bar':
             fig = go.Figure(data=[go.Bar(x=df[x_column], y=df[y_column], marker_color=color)])
         elif chart_type == 'line':
-            fig = go.Figure(data=[go.Scatter(x=df[x_column], y=df[y_column], mode='lines', line=dict(color=color))])
+            fig = go.Figure(data=[go.Scatter(x=df[x_column], y=df[y_column], mode='lines+markers', line=dict(color=color))])
         elif chart_type == 'pie':
             fig = go.Figure(data=[go.Pie(labels=df[x_column], values=df[y_column], marker=dict(colors=[color]))])
         else:
