@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify, session
-from flask_session import Session
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.utils
@@ -8,18 +7,17 @@ import io
 import os
 
 app = Flask(__name__)
-
-# Configure server-side session storage
-app.config['SESSION_TYPE'] = 'filesystem'
-Session(app)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'your_secret_key'  # 設置一個秘密鍵，用於session
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         if 'file' not in request.files:
             return jsonify({'error': 'No file part'})
+        # print(request.files)
         file = request.files['file']
+        # print(file)
+        # print(file.filename)
         if file.filename == '':
             return jsonify({'error': 'No selected file'})
         if file and allowed_file(file.filename):
@@ -31,45 +29,20 @@ def index():
                 else:
                     return jsonify({'error': 'Unsupported file format'})
                 
-                # Store DataFrame in server-side session
-                session['data'] = df.to_dict()
+                # 將DataFrame轉換為JSON並存儲在session中
+                session['data'] = df.to_json()
                 columns = df.columns.tolist()
                 return render_template('chart.html', columns=columns)
             except Exception as e:
                 return jsonify({'error': str(e)})
     return render_template('index.html')
 
-@app.route('/0', methods=['GET', 'POST'])
-def index0():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file part'})
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No selected file'})
-        if file and allowed_file(file.filename):
-            try:
-                if file.filename.endswith('.csv'):
-                    df = pd.read_csv(file)
-                elif file.filename.endswith(('.xls', '.xlsx')):
-                    df = pd.read_excel(file)
-                else:
-                    return jsonify({'error': 'Unsupported file format'})
-                
-                # Store DataFrame in server-side session
-                session['data'] = df.to_dict()
-                columns = df.columns.tolist()
-                return render_template('chart.html', columns=columns)
-            except Exception as e:
-                return jsonify({'error': str(e)})
-    return render_template('index0.html')
-
 @app.route('/plot', methods=['POST'])
 def plot():
     try:
         data = request.json
-        # Convert dict back to DataFrame
-        df = pd.DataFrame.from_dict(session['data'])
+        # 從session中獲取數據並轉換回DataFrame
+        df = pd.read_json(session['data'])
 
         x_column = data['x_column']
         y_column = data['y_column']
@@ -91,6 +64,18 @@ def plot():
         return jsonify(graphJSON)
     except Exception as e:
         return jsonify({'error': str(e)})
+    
+@app.route('/upload', methods=['POST'])
+def upload():
+    print(request.files)  # Full ImmutableMultiDict
+    file = request.files['file']  # Get FileStorage object
+    
+    # Access different parts
+    name = file.filename
+    type = file.content_type
+    size = file.content_length
+    
+    return f"Uploaded: {name}, Type: {type}, Size: {size}"
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv', 'xls', 'xlsx'}
