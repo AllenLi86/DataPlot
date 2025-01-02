@@ -14,7 +14,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 app.secret_key = 'your_secret_key'
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -39,58 +39,47 @@ def index():
                 return jsonify({'error': str(e)})
     return render_template('index.html')
 
-@app.route('/0', methods=['GET', 'POST'])
-def index0():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file part'})
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No selected file'})
-        if file and allowed_file(file.filename):
-            try:
-                if file.filename.endswith('.csv'):
-                    df = pd.read_csv(file)
-                elif file.filename.endswith(('.xls', '.xlsx')):
-                    df = pd.read_excel(file)
-                else:
-                    return jsonify({'error': 'Unsupported file format'})
-                
-                # Store DataFrame in server-side session
-                session['data'] = df.to_dict()
-                columns = df.columns.tolist()
-                return render_template('chart.html', columns=columns)
-            except Exception as e:
-                return jsonify({'error': str(e)})
-    return render_template('index0.html')
-
 @app.route('/plot', methods=['POST'])
 def plot():
     try:
         data = request.json
-        # Convert dict back to DataFrame
         df = pd.DataFrame.from_dict(session['data'])
-
-        x_column = data['x_column']
-        y_column = data['y_column']
-        chart_type = data['chart_type']
-        color = data['color']
-
-        if chart_type == 'bar':
-            fig = go.Figure(data=[go.Bar(x=df[x_column], y=df[y_column], marker_color=color)])
-        elif chart_type == 'line':
-            fig = go.Figure(data=[go.Scatter(x=df[x_column], y=df[y_column], mode='lines', line=dict(color=color))])
-        elif chart_type == 'pie':
-            fig = go.Figure(data=[go.Pie(labels=df[x_column], values=df[y_column], marker=dict(colors=[color]))])
-        else:
-            return jsonify({'error': 'Unsupported chart type'})
-
-        fig.update_layout(title=f'{y_column} vs {x_column}')
+        
+        traces = []
+        for line in data['lines']:
+            trace = go.Scatter(
+                x=df[line['x_column']], 
+                y=df[line['y_column']], 
+                mode='lines+markers',
+                name=f"{line['y_column']} vs {line['x_column']}",
+                line=dict(color=line['color'])
+            )
+            traces.append(trace)
+            
+        fig = go.Figure(data=traces)
+        fig.update_layout(
+            title='Multiple Lines Chart',
+            height=800,
+            autosize=True
+        )
         
         graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
         return jsonify(graphJSON)
     except Exception as e:
         return jsonify({'error': str(e)})
+
+@app.route('/', methods=['GET', 'POST'])
+def test_post():
+    if request.method == 'POST':
+        if 'file' in request.files:
+            file = request.files['file']
+            df = pd.read_excel(file)
+            print(df)
+        if 'username' in request.form:
+            u = request.form['username']
+            e = request.form['email']
+            print(u, e)
+    return render_template('index_test.html')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv', 'xls', 'xlsx'}

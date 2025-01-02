@@ -10,7 +10,7 @@ def get_only():
 # Test jsonify
 @app.route('/JJJ', methods=['GET']) 
 def index():
-    response = jsonify({'maaassage': 'welcome'})
+    response = jsonify({'massage': 'welcome'})
     return response
 
 # Specify multiple methods
