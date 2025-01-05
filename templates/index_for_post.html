@@ -6,11 +6,15 @@
     <title>Test post</title>
 </head>
 <body>
-    <form method="POST">
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <!--
         <input type="text" name="first_name" placeholder="first name">
         <input type="text" name="last_name" placeholder="last name">
         </br>
         <input type="email" name="user_email" placeholder="email">
+        </br>
+        -->
+        <input type="file" name="excel_file">
         <button type="submit">Submit</button>
     </form>
 </body>
