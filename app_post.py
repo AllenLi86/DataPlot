@@ -40,7 +40,9 @@ def plot():
     
     # Create plotly figure
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x_data, y=y_data, mode='lines+markers'))
+    fig.add_trace(
+        go.Scatter(x=x_data, y=y_data, mode='lines+markers')
+        )
     
     # Customize layout if needed
     fig.update_layout(
