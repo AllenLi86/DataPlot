@@ -39,6 +39,12 @@
             background-color: #f8d7da;
             border-color: #dc3545;
         }
+
+        .upload-zone-drag {
+            background-color: #e2e6ea;
+            border-color: #0d6efd;
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -81,6 +87,27 @@
             } else {
                 fileText.textContent = 'Click or drag file to upload';
                 uploadZone.classList.remove('upload-success');
+            }
+        });
+
+        // 添加拖放事件處理
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('upload-zone-drag');
+        });
+
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('upload-zone-drag');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileText.textContent = `Selected: ${files[0].name}`;
+                uploadZone.classList.add('upload-success');
             }
         });
     </script>

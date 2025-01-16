@@ -4,20 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Visualization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body>
-    <form method="POST">
-        <input type="text" name="username" placeholder="Enter your name">
-        <input type="email" name="email" placeholder="Enter your email">
-        <div>
-            <label for="file-upload">
-                <span>Click or drag file to upload</span>
-            </label>
-            <input id="file-upload" type="file" name="file" accept=".csv,.xls,.xlsx" required>
+    <div class="container py-4">
+        <div class="card shadow-sm p-3">
+            <h1 class="text-center mb-4 mt-5 fw-bold">Data Visualization Upload</h1>
+            <!-- Remove the id="upload-form" since we'll use regular form submission -->
+            <form action="/" method="post" enctype="multipart/form-data">
+                <div class="mb-4 text-center">
+                    <div class="upload-zone rounded-3" id="upload-zone">
+                        <label for="file-upload" class="form-label mb-0 w-100 h-100" style="cursor: pointer;">
+                            <span id="file-text">Click or drag file to upload</span>
+                        </label>
+                        <input class="form-control d-none" id="file-upload" type="file" name="file" accept=".csv,.xls,.xlsx" required>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary px-4 py-2">Upload & Visualize</button>
+                    <p class="text-muted mt-3">Supported formats: CSV, XLS, XLSX</p>
+                </div>
+            </form>
         </div>
-        <div class="text-center">
-            <button type="submit">Submit</button>
-        </div>
-    </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

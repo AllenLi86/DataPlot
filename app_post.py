@@ -28,7 +28,7 @@ def test_post():
             columns = df.columns.tolist()
             return render_template("for_chart.html", columns=columns)
     else:
-        return render_template("index_for_post.html")
+        return render_template("index_test.html")
     
 @app.route('/plot', methods=['POST'])
 def plot():
