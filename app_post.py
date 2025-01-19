@@ -13,8 +13,8 @@ Session(app)
 @app.route('/', methods=['GET', 'POST'])
 def test_post():
     if request.method == "POST":
-        if "excel_file" in request.files:
-            file = request.files["excel_file"]
+        if "file" in request.files:
+            file = request.files["file"]
             if file.filename == "":
                 return jsonify({"Error": "No file selected"})
             elif file.filename[-5:] == ".xlsx":
@@ -27,6 +27,7 @@ def test_post():
             session['data'] = df.to_dict()
             columns = df.columns.tolist()
             return render_template("for_chart.html", columns=columns)
+        return jsonify({"Error": "No file part"})  # Add this line
     else:
         return render_template("index_test.html")
     
