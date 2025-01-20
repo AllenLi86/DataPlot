@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Chart</title>
 </head>
@@ -47,6 +48,41 @@
             <div id="chart" class="chart-container"></div>
         </div>
     </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let chart;
+        let lineCount = 1;
+        document.getElementById('add-line').addEventListener('click', () => {
+            lineCount++;
+            const newLine = document.createElement('div');
+            newLine.className = 'line-inputs row g-3 mb-3';
+            newLine.innerHTML = `
+                <div class="col-md-3">
+                    <label class="form-label">Line ${lineCount} X:</label>
+                    <select class="form-select x-column" required>
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Line ${lineCount} Y:</label>
+                    <select class="form-select y-column" required>
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Color:</label>
+                    <input type="color" class="form-control form-control-color w-100 line-color">
+                </div>
+            `;
+            document.getElementById('lines-container').appendChild(newLine);
+        });
+    </script>
 
 </body>
 </html>
