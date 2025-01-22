@@ -82,6 +82,23 @@
             `;
             document.getElementById('lines-container').appendChild(newLine);
         });
+
+        document.getElementById('chart-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const lines = [];
+            const lineInputs = document.getElementsByClassName('line-inputs');
+
+            Array.from(lineInputs).forEach(i => {
+                lines.push({
+                    x_column: i.querySelector('.x-column').value,
+                    y_column: i.querySelector('.y-column').value,
+                    color: i.querySelector('.line-color').value
+                });
+            });
+
+            console.log(lines);
+        });
+
     </script>
 
 </body>
