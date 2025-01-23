@@ -97,6 +97,35 @@
             });
 
             console.log(lines);
+
+            // 20250123 progress
+            fetch('/plot', {
+                method: 'POST',
+                body: JSON.stringify({
+                    lines: lines,
+                    chart_type: 'line'
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                return response.json()
+            })
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('error').textContent = data.error;
+                    document.getElementById('error').style.display = 'block';
+                } else {
+                    chart = JSON.parse(data);
+                    Plotly.newPlot('chart', chart.data, chart.layout, {responsive: true});
+                }
+            });
+
+
+
+
+
         });
 
     </script>

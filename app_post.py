@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify, session
 from flask_session import Session
 import pandas as pd
 import plotly.graph_objs as go
+import json
+import plotly.utils
 
 
 app = Flask(__name__)
@@ -33,29 +35,39 @@ def test_post():
     
 @app.route('/plot', methods=['POST'])
 def plot():
-    x = request.form["line_x"]
-    y = request.form["line_y"]
+    data = request.json
     df = pd.DataFrame.from_dict(session['data'])
-    x_data = df[x]
-    y_data = df[y]
     
-    # Create plotly figure
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(x=x_data, y=y_data, mode='lines+markers')
+    # data = {
+    #     lines: [
+    #         {x_column: "freq", y_column: "s21", color: "#0000FF"},
+    #         {x_column: "freq", y_column: "s21", color: "#0000FF"},
+    #     ]
+    #     chart_type: 'line' 
+    # }
+    
+    traces = []
+    for line in data['lines']:
+        trace = go.Scatter(
+            x=df[line['x_column']],
+            y=df[line['y_column']],
+            mode='lines+markers',
+            name=f"{line['y_column']} vs {line['x_column']}",
+            line=dict(color=line['color'])
         )
-    
-    # Customize layout if needed
+        traces.append(trace)
+        
+    fig = go.Figure(traces)
     fig.update_layout(
-        title=f'{y} vs {x}',
-        xaxis_title=x,
-        yaxis_title=y
+        title='Multiple Lines Chart',
+        # height=800,
+        autosize=True
     )
     
-    fig.write_html('templates/xy_chart.html')
-    return render_template("xy_chart.html")
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return jsonify(graphJSON)
     
-    # return jsonify({"x": x_data.tolist(), "y": y_data.tolist()})
+    
     
 if __name__ == '__main__':
     app.run(debug=True)
