@@ -26,7 +26,7 @@ def test_post():
             else:
                 return jsonify({"Error": "Invalid file format"})
             
-            session['data'] = df.to_dict()
+            session['excel_data'] = df.to_dict()
             columns = df.columns.tolist()
             return render_template("for_chart.html", columns=columns)
         return jsonify({"Error": "No file part"})  # Add this line
@@ -36,18 +36,19 @@ def test_post():
 @app.route('/plot', methods=['POST'])
 def plot():
     data = request.json
-    df = pd.DataFrame.from_dict(session['data'])
+    df = pd.DataFrame.from_dict(session['excel_data'])
     
     # data = {
     #     lines: [
-    #         {x_column: "freq", y_column: "s21", color: "#0000FF"},
-    #         {x_column: "freq", y_column: "s21", color: "#0000FF"},
+    #         {x_column: "Student ID", y_column: "Math", color: "#0000FF"},
+    #         {x_column: "Student ID", y_column: "English", color: "#0000FF"},
     #     ]
-    #     chart_type: 'line' 
     # }
     
     traces = []
     for line in data['lines']:
+        # line = {x_column: "Student ID", y_column: "Math", color: "#0000FF"}
+        # line['x_column']
         trace = go.Scatter(
             x=df[line['x_column']],
             y=df[line['y_column']],
